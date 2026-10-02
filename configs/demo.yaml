@@ -1,0 +1,31 @@
+mode: demo
+seed: 42
+dataset: "DHDrift 1.0.0 (doi:10.5281/zenodo.18128257)"
+
+data:
+  root: data/raw
+  scenarios: [EXP, REF, NS]
+  severities: [L, M, H]
+  realizations: 2
+
+# Si la autodetección de columnas de ground_truth_labels.csv falla, fíjalas aquí:
+labels:
+  file_col: null
+  start_col: null
+
+split:
+  train_fraction: 0.8
+
+phases:
+  transition_days: 180   # días tras el inicio del drift que cuentan como "transición"
+
+rom:
+  components: [2, 5]
+
+ml:
+  train_phase: developed   # el clasificador se entrena con perfiles ya desarrollados
+  max_train_rows: null
+
+models:
+  - logistic_regression
+  - random_forest
