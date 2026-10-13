@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import json
 from pathlib import Path
 
 import numpy as np
@@ -53,6 +54,9 @@ def run(ds, split, reps, cfg, outdir: Path, save: bool = True) -> pd.DataFrame:
     if save:
         save_tables(results, outdir)
         fig_confusions(cms, outdir)
+        (outdir / "confusion_matrices.json").write_text(
+            json.dumps({"|".join(k): v.tolist() for k, v in cms.items()}), encoding="utf-8"
+        )
         fig_components_vs_performance(results, outdir)
     return results
 

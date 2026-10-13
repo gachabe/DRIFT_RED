@@ -4,16 +4,12 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import balanced_accuracy_score, f1_score
 
 from src.data import SCENARIOS, SEVERITIES, build_dataset, load_config
-from src.evaluation import to_markdown
+from src.evaluation import fig_progress, to_markdown
 from src.features import rows, split_realizations
 from src.models import make_model
 from src.rom import fit_representation
@@ -76,15 +72,7 @@ def main(cfg: dict, bins: int = 5) -> None:
         parts.append(f"### {model} — {ph}: balanced accuracy por severidad\n\n" + to_markdown(t))
     (out / "progress_summary.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8")
 
-    fig, ax = plt.subplots(1, len(cfg["models"]), figsize=(6 * len(cfg["models"]), 4), squeeze=False, sharey=True)
-    for a, (model, g) in zip(ax[0], b_df.groupby("model", sort=False)):
-        for label, gg in g.groupby("representation", sort=False):
-            a.plot(gg["bin"] + 0.5, gg["balanced_accuracy"], "o-", label=label)
-        a.set(title=model, xlabel="avance de la transición (tramos)", ylabel="balanced accuracy")
-        a.legend(fontsize=7)
-    fig.tight_layout()
-    fig.savefig(out / "07_progress.png", dpi=130)
-    plt.close(fig)
+    fig_progress(b_df, out)
     print(f"\nListo. Resultados en {out}/ (progress_summary.md, 07_progress.png)")
 
 

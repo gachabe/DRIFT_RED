@@ -40,3 +40,11 @@ fija `labels.file_col` y `labels.start_col` en `configs/*.yaml`.
 ```
 
 Genera `results/full/results_seeds_summary.md` y `06_components_vs_performance_seeds.png`.
+
+## Regenerar solo las figuras (sin reentrenar)
+
+```powershell
+.\.venv\Scripts\python.exe -m experiments.replot --config configs/full.yaml --data
+```
+
+Sin `--data` solo rehace 05, 06 y 07 desde los CSV (segundos). Con `--data` rehace también 01, 02 y 03 (recarga las series, ~1,5 min). Con `--confusion` reentrena una vez para regenerar 04 y guarda `confusion_matrices.json`; a partir de ahí 04 también sale sin reentrenar.

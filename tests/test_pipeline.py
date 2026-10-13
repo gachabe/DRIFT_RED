@@ -42,3 +42,15 @@ def test_seeds(cfg):
     out = Path(cfg["results_dir"])
     assert (out / "results_seeds_summary.md").exists() and (out / "06_components_vs_performance_seeds.png").exists()
     assert len(agg) == 2 * 3 * 3 and np.isfinite(agg["macro_f1_mean"]).all()
+
+
+def test_progress(cfg):
+    importlib.import_module("experiments.06_progress").main(cfg)
+    out = Path(cfg["results_dir"])
+    assert (out / "progress_summary.md").exists() and (out / "07_progress.png").exists()
+
+
+def test_replot(cfg):
+    importlib.import_module("experiments.replot").main(cfg, data=True)
+    out = Path(cfg["results_dir"])
+    assert (out / "confusion_matrices.json").exists() and (out / "04_confusion_matrix.png").exists()
