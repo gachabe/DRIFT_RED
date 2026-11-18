@@ -51,5 +51,6 @@ def make_synthetic(root: Path, n_real: int = 4, seed: int = 0) -> Path:
                     for j in range(1, 13):
                         labels.append({**row, "timestamp": ev_utc + pd.Timedelta(days=30 * j - 0), "event_type": "step"})
     pd.DataFrame(labels).to_csv(bench / "ground_truth_labels.csv", index=False)
-    pd.DataFrame({"timestamp": ts, "temp": 0.0}).to_csv(bench / "weather.csv", index=False)
+    temp = 10 - 12 * np.cos(2 * np.pi * (doy - 15) / 365.25) + 3 * np.sin(2 * np.pi * hour / 24) + np.random.default_rng(seed + 1).normal(0, 2, len(ts))
+    pd.DataFrame({"timestamp": ts, "temperature_c": temp}).to_csv(bench / "weather.csv", index=False)
     return Path(root)

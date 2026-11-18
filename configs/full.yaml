@@ -20,7 +20,8 @@ phases:
   transition_days: 180   # días tras el inicio del drift que cuentan como "transición"
 
 rom:
-  components: [2, 5, 10]
+  components: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]   # rejilla prefijada (no se elige k con el test)
+  focus_components: [2, 5, 10]   # dimensiones usadas en los experimentos secundarios
 
 ml:
   train_phase: developed   # el clasificador se entrena con perfiles ya desarrollados
@@ -29,3 +30,36 @@ ml:
 models:
   - logistic_regression
   - random_forest
+
+figures:
+  confusion_components: [2, 5, 10]
+  progress_components: [2, 5, 10]
+
+revision:
+  n_seeds: 10
+  n_seeds_secondary: 5      # semillas de los experimentos con reentrenamiento (P5, P8b, P11b, P12, P4b)
+  n_seeds_perturb: 3        # semillas del banco de ruido/fallos (P9)
+  bootstrap_resamples: 1000
+  progress_bins: 5
+  hdd_base_c: 15.5
+  weather: {file: weather.csv, time_col: null, temp_col: null}
+  night_hours: [22, 23, 0, 1, 2, 3, 4, 5]
+  day_hours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+  morning_hours: [6, 7, 8, 9]
+  followup_windows: [90, 180, 365]
+  boundary_buffers: [7, 14, 30]
+  exp_transition_days_alt: [90, 360]
+  normalization_modes: [daily_mean_normalized, daily_zscore_shape]
+  hellinger_bins: 20
+  hellinger_bootstrap: 200
+  perturb_max_test_rows: 80000
+  rf_grid:
+    n_estimators: [200, 500]
+    max_depth: [null, 20]
+    min_samples_leaf: [1, 5]
+    max_features: [sqrt, 0.5, 1.0]   # 1.0 añadido a la guía: con PCA-2, sqrt y 0.5 dan ambos 1 variable por división
+  rf_cv_folds: 3
+  rf_cv_rows: 60000
+  rf_test_mode: focused      # focused = defecto + elegido + variaciones de un factor; all = toda la rejilla
+  bench_repeats: 5
+  bench_pred_profiles: 10000

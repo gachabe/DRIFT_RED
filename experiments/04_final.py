@@ -4,19 +4,11 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
-import subprocess
-import sys
 from pathlib import Path
 
 from src.data import load_config
 from src.features import prepare
-
-
-def _git_commit() -> str:
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL).strip()
-    except Exception:
-        return "unknown"
+from src.runtime import git_commit, git_dirty, hardware, package_versions
 
 
 def main(cfg: dict) -> dict:
@@ -38,12 +30,16 @@ def main(cfg: dict) -> dict:
     meta = {
         "mode": cfg["mode"],
         "seed": cfg["seed"],
-        "git_commit": _git_commit(),
-        "python_version": sys.version.split()[0],
+        "git_commit": git_commit(),
+        "git_dirty": git_dirty(),
+        "package_versions": package_versions(),
+        "hardware": hardware(),
+        "python_version": package_versions()["python"],
         "dataset": cfg.get("dataset", "DHDrift 1.0.0"),
         "components": cfg["rom"]["components"],
         "models": cfg["models"],
         "transition_days": cfg.get("phases", {}).get("transition_days"),
+        "config": cfg,
         "train_realizations": split.train,
         "test_realizations": split.test,
     }

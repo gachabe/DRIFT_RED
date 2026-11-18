@@ -29,11 +29,13 @@ def main(cfg: dict, data: bool = False, confusion: bool = False) -> None:
         fig_components_seeds(pd.read_csv(out / "results_seeds_summary.csv"), out)
         done.append("06")
     if (out / "progress_by_bin.csv").exists():
-        fig_progress(pd.read_csv(out / "progress_by_bin.csv"), out)
+        fig_progress(pd.read_csv(out / "progress_by_bin.csv"), out, (cfg.get("figures") or {}).get("progress_components"))
         done.append("07")
     if (out / "confusion_matrices.json").exists():
         raw = json.loads((out / "confusion_matrices.json").read_text(encoding="utf-8"))
-        fig_confusions({tuple(k.split("|")): np.array(v) for k, v in raw.items()}, out)
+        keep = (cfg.get("figures") or {}).get("confusion_components")
+        cms = {tuple(k.split("|")): np.array(v) for k, v in raw.items()}
+        fig_confusions({k: v for k, v in cms.items() if keep is None or k[2] == "Raw" or int(k[2].split("-")[1]) in keep}, out)
         done.append("04")
     if data or confusion:
         ds, split = prepare(cfg, out)  # recarga las series (~1.5 min con full)

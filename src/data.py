@@ -241,3 +241,16 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.download:
         download(a.dest)
+
+
+def load_baseline(cfg: dict):
+    """Perfiles diarios del/los ficheros de `baseline` (sin drift). Nunca se usa para entrenar. None si no existe."""
+    try:
+        bench = find_benchmark_dir(cfg["data"].get("root", "data/raw"))
+    except FileNotFoundError:
+        return None
+    files = sorted((bench / "heat_load" / "baseline").glob("*.csv"))
+    if not files:
+        return None
+    Xs, ds = zip(*(daily_profiles(read_heat_load(f)) for f in files))
+    return np.vstack(Xs), pd.DatetimeIndex(np.concatenate([d.values for d in ds]))

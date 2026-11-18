@@ -33,7 +33,7 @@ def test_end_to_end(cfg):
     meta = json.loads((out / "run_metadata.json").read_text())
     assert set(meta["train_realizations"]).isdisjoint(meta["test_realizations"])
     res = summary["results"]
-    assert len(res) == 2 * 3 * 3  # modelos x (raw+2 PCA) x fases
+    assert len(res) == 2 * 3 * (1 + len(cfg['rom']['components']))  # modelos x fases x (raw+PCA)
     assert all(np.isfinite(r["macro_f1"]) for r in res)
 
 
@@ -41,7 +41,7 @@ def test_seeds(cfg):
     agg = importlib.import_module("experiments.05_seeds").main(cfg, n_seeds=2)
     out = Path(cfg["results_dir"])
     assert (out / "results_seeds_summary.md").exists() and (out / "06_components_vs_performance_seeds.png").exists()
-    assert len(agg) == 2 * 3 * 3 and np.isfinite(agg["macro_f1_mean"]).all()
+    assert len(agg) == 2 * 3 * (1 + len(cfg['rom']['components'])) and np.isfinite(agg["macro_f1_mean"]).all()
 
 
 def test_progress(cfg):
