@@ -111,3 +111,29 @@ Todas las figuras (`.png`, `.svg`, `.pdf`) se guardan con `src/figio.save_fig`, 
 - **`reference/manuscript_numbers.csv`**: contiene las cifras de la ejecución `full` (semilla 42, pegadas en la conversación) y las medias de 10 semillas del resumen del proyecto. **Verifícalas contra el manuscrito y añade las que falten**; `P0_manuscript_consistency` fallará (y lo dirá) si alguna no coincide con lo generado.
 - `configs/full.yaml` usa ahora `rom.components: [2..12]`. Las figuras de confusión y de progreso solo muestran `figures.confusion_components` / `progress_components` (2, 5, 10) para que sigan siendo legibles; las tablas llevan todas las dimensiones. Los resultados de k = 2, 5, 10 se reproducen exactamente (verificado en datos sintéticos contra el código original: diferencia 0.0).
 - La caché del dataset está en `data/processed/` (ignorada por git). Si cambias los datos de `data/raw`, borra esa carpeta.
+
+## Lectura de los resultados de la revisión (ejecución completa, commit e38ecdb)
+
+Las 21 etapas terminaron correctamente (~8 h) y los 83 números del manuscrito coinciden con los generados (`manuscript_consistency.csv`, 0 fallos). Las cifras salen de los `.md` de resumen; los datos son sintéticos y las 10 semillas miden sensibilidad a la partición (test solapados), no incertidumbre estadística completa.
+
+### Se confirma
+- Control de azar correcto: en `pre` el F1 ronda 0.33 con todos los modelos y representaciones.
+- PCA-5 y PCA-10 conservan casi toda la información que usa el RF (diferencias de milésimas frente a Raw en `developed`).
+- PCA-2 sí pierde información y no es un artefacto de `max_features` (sigue con `max_features=1.0`). Ajustar la PCA solo con `pre` empeora PCA-2 (−0.084) y apenas PCA-5/10.
+- Las conclusiones no dependen de la definición de transición: con buffers de 7/14/30 d el F1 sube suave (Raw 0.842 → 0.871); las ventanas de seguimiento dan 0.93–0.999.
+
+### Matices o correcciones para el artículo
+1. **La caída de EXP en transición es de precisión, no de recall.** Los primeros días de la transición se parecen demasiado a "sin intervención". El RF pasa de 0.56–0.59 (0–20 % del avance) a >0.98 (desde el 60 %).
+2. **Clima:** solo fecha o solo temperatura no dan información de escenario (≈ azar), pero perfil + temperatura mejora la regresión logística (Raw `developed` 0.824 vs 0.719). No se puede afirmar invarianza al clima; las trayectorias base son comunes entre realizaciones (correlación residual ≈ 0.99).
+3. **Normalización de forma:** el RF Raw se mantiene (0.997), pero la regresión logística cae mucho y PCA-2/PCA-5 pierden (PCA-2 RF 0.852 vs 0.949). La señal está sobre todo en la forma, pero el nivel ayuda a modelos lineales y a PCA con pocos componentes.
+4. **Robustez:** PCA **no** protege frente a ruido ni desfase. Ruido σ=0.01 baja Raw de 0.840 a 0.686; un desfase de ±1 h lo lleva a ~0.55 (PCA-10 a 0.40–0.50). Picos y huecos puntuales se toleran mejor. Eliminar cualquier frase sobre robustez al ruido.
+5. **Enrutador de fallos:** bien con `calibration_drift` (≈0.99 a "medición") y `hx_degradation` (≈0.95); mal con `stuck_sensor` (0.68 "none"), `valve_failure` (0.72) y `leakage` (0.38). Úsese como pre-filtrado, no como detector de fallos. Extremo a extremo: 82 % de filas estructurales llegan al clasificador de escenario (F1 ≈ 0.98 con Raw/PCA-10).
+6. **Cuatro clases (NONE) y BL:** el RF acierta NONE en `pre` (recall 0.80) pero solo el 46 % de los días del baseline se predicen NONE (≈54 % de falsos positivos), igual con Raw y PCA. El control negativo **no se supera**; la regresión logística es peor y variable (0.16 PCA-2 vs 0.46 Raw).
+
+### Lo que no se puede afirmar
+- **Reducción de sensores:** PCA sigue necesitando las 24 horas.
+- **Reducción de coste de inferencia:** ≈0.07 s por 10 000 perfiles en todas las representaciones. El ajuste del RF baja de 45 s (Raw) a 17–26 s con PCA-2…8 pero sube a ~36 s con PCA-9+; PCA-2 ocupa más serializado (463 MB vs 114 MB).
+- **Intervenciones solapadas (P13):** requiere datos nuevos; trabajo futuro (`NOT_IMPLEMENTED.md`).
+
+### Cambios sugeridos en el manuscrito
+Tabla de deltas pareados vs Raw con p2.5–p97.5 (aclarando qué miden las 10 semillas); nueva explicación de la caída en transición con la figura por tramos de avance; suavizar frases sobre clima, ruido y desfase; describir el modelo de cuatro clases/BL como control negativo con resultado limitado; incluir la figura del flujo de trabajo y el aviso sobre sensores y coste.
